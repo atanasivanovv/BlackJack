@@ -142,6 +142,7 @@ void Player::reg()
 	{
 		cout << "   Enter a correct name!" << endl;
 		cout << "   Enter your name: ";
+		cin.getline(this->name, 64);
 	}
 
 	cout << "   Enter your age: ";
