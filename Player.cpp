@@ -127,6 +127,27 @@ void Player::printStats()
 	cout << "   Win Odd: " << this->winOdd * 100 << "%" << endl;
 }
 
+void Player::printOutput(fstream& fs)
+{
+	fs.open("Registered_Players.txt", ios::in | ios:: out | ios::app);
+
+	if (fs.is_open()) {
+		cout << "   Registered Players file oppened successfully." << endl;
+		cout << "   Writing to the file..." << endl;
+		fs << "Player Registered!" << endl;
+		fs << "   Name: " << this->name << endl;
+		fs << "   Age: " << this->age << endl;
+		fs << "   Wins: " << this->wins << endl;
+		fs << "   Win Odd: " << this->winOdd * 100 << "%" << endl;
+		fs << "------------------" << endl;
+	}
+	else {
+		cout << "   Error while oppening Registered Players";
+	}
+
+	fs.seekg(0);
+}
+
 void Player::getName()
 {
 	cout << this->name << endl;

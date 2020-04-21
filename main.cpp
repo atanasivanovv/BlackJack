@@ -3,6 +3,7 @@
 #include "Player.h"
 #include "String.h"
 #include "Vector.h"
+#include <fstream>
 
 using namespace std;
 
@@ -25,6 +26,8 @@ void chooseDeck(bool& whichDeck, int& num) {
 
 	while (deck != 'A' && deck != 'B')
 	{
+		cin.clear();
+		cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 		cout << "   WRONG INPUT" << endl; 
 		cout << "   YOUR CHOICE: ";
 		cin >> deck;
@@ -41,13 +44,33 @@ void chooseDeck(bool& whichDeck, int& num) {
 		cout << "   HOW MANY CARDS DO YOU WANT TO PLAY WITH? " << endl;
 		cout << "   -> ";
 		cin >> cardsCount;
-		
-		while (cardsCount >= 408)
+
+		while (cin.fail())
 		{
-			cout << "   INVALID INPUT - TOO BIG NUMBER FOR CARDS." << endl;
+			cin.clear();
+			cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+			cout << "   INVALID INPUT!" << endl;
 			cout << "   HOW MANY CARDS DO YOU WANT TO PLAY WITH? " << endl;
 			cout << "   -> ";
 			cin >> cardsCount;
+		}
+
+		while (cardsCount >= 408)
+		{
+			cout << "   INVALID INPUT!" << endl;
+			cout << "   HOW MANY CARDS DO YOU WANT TO PLAY WITH? " << endl;
+			cout << "   -> ";
+			cin >> cardsCount;
+
+			while (cin.fail())
+			{
+				cin.clear();
+				cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+				cout << "   INVALID INPUT!" << endl;
+				cout << "   HOW MANY CARDS DO YOU WANT TO PLAY WITH? " << endl;
+				cout << "   -> ";
+				cin >> cardsCount;
+			}
 		}
 
 
@@ -72,6 +95,8 @@ int aceCheck()
 	{
 		cout << "ENTER EITHER 1 OR 11!" << endl;
 		cout << "   -> ";
+		cin.clear();
+		cin.ignore(132, '\n');
 		cin >> aceValue;
 	}
 
@@ -90,12 +115,14 @@ void hitOrStand (char &playerChoice)
 
 	while (playerChoice != 'B' && playerChoice != 'b' && playerChoice != 'A' && playerChoice != 'a' && playerChoice != 'C' && playerChoice != 'c')
 	{
-		cin >> playerChoice;
+		cin.clear();
+		cin.ignore(132, '\n');
 		cout << "   INCORRECT INPUT " << endl;
 		cout << "   -> A: HIT " << endl;
 		cout << "   -> B: STAND" << endl;
 		cout << "   -> C: PROBABILITY" << endl;
 		cout << "   YOUR CHOICE: ";
+		cin >> playerChoice; cout << endl;
 	}
 }
 
@@ -109,433 +136,320 @@ void showPoints(const int playerPoints, const int opponentPoints)
 	cout << opponentPoints; cout << endl << endl;
 }
 
+void decideWinner(Player& startPlayer, Player& opponent) {
+	if (opponent.getCurrentPoints() > 21)
+	{
+		cout << "   THE OPPONENT GOT ABOVE 21 - YOU WIN!" << endl;
+		startPlayer.addWin();
+	}
+	else if (opponent.getCurrentPoints() == 21)
+		cout << "   THE OPPONENT GOT 21 - YOU LOSE!" << endl;
+	else if (startPlayer.getCurrentPoints() > 21)
+		cout << "   YOU GOT ABOVE 21 - YOU LOSE!" << endl;
+	else if (startPlayer.getCurrentPoints() == 21)
+	{
+		cout << "   YOU GOT 21 - YOU WIN!" << endl;
+		startPlayer.addWin();
+	}
+	else if (startPlayer.getCurrentPoints() >= opponent.getCurrentPoints())
+	{
+		cout << "   YOU HAVE MORE POINTS - YOU WIN!" << endl;
+		startPlayer.addWin();
+	}
+	else if (startPlayer.getCurrentPoints() < opponent.getCurrentPoints())
+		cout << "   THE OPPONENT HAS MORE POINTS - YOU LOSE!" << endl;
+
+	cout << endl;
+}
+
 int main()
 {
 	srand(time(NULL));
 
 	Vector<Player> registeredUsers;
 
-	while (true)
+	cout << "   ------------------    WELCOME TO BLACKJACK    ------------------   " << endl;
+
+	if (registeredUsers.getSize() >= 1)
 	{
-		cout << "   ------------------    WELCOME TO BLACKJACK    ------------------   " << endl;
-
-		if (registeredUsers.getSize() >= 1)
-		{
-			for (size_t i = 0; i < registeredUsers.getSize(); i++)
-				registeredUsers[i].print();
-		}
+		for (size_t i = 0; i < registeredUsers.getSize(); i++)
+			registeredUsers[i].print();
+	}
 			
 
-		Player startPlayer;
-		Player opponent;
-		bool deckChoise;
-		int numOfCards = 0;
+	Player startPlayer;
+	Player opponent;
+	bool deckChoise;
+	int numOfCards = 0;
 
-		startPlayer.reg();
+	startPlayer.reg();
 
-		if (startPlayer.getPlayerValidation())
-		{
-			chooseDeck(deckChoise, numOfCards); 
+	if (startPlayer.getPlayerValidation())
+	{
+		chooseDeck(deckChoise, numOfCards); 
 			
 
-			// DEFAULT DECK
-			if (deckChoise)
+		// DEFAULT DECK
+		if (deckChoise)
+		{
+			// With default deck
+			Deck defaultDeck;
+
+			// The player draws a card
+			Card drawnCard = defaultDeck.getDrawnCard();
+			defaultDeck.draw();
+			cout << "   YOU DREW  ->  ";
+			drawnCard.printCard(); cout << endl;
+			startPlayer.setDrawnCard(drawnCard);
+
+			// The opponent draws a card
+			Card opponentDrawnCard = defaultDeck.getDrawnCard();
+			defaultDeck.draw();
+			cout << "   YOU OPPENENT DREW  ->  ";
+			opponentDrawnCard.printCard(); cout << endl;
+			opponent.setDrawnCard(opponentDrawnCard);
+
+			// Adding the points to the player
+			if (drawnCard.getValue() == 1)
 			{
-				// With default deck
-				Deck defaultDeck;
-
-				// The player draws a card
-				Card drawnCard = defaultDeck.getDrawnCard();
-				defaultDeck.draw();
-				cout << "   YOU DREW  ->  ";
-				drawnCard.printCard(); cout << endl;
-				startPlayer.setDrawnCard(drawnCard);
-
-				// The opponent draws a card
-				Card opponentDrawnCard = defaultDeck.getDrawnCard();
-				defaultDeck.draw();
-				cout << "   YOU OPPENENT DREW  ->  ";
-				opponentDrawnCard.printCard(); cout << endl;
-				opponent.setDrawnCard(opponentDrawnCard);
-
-				// Adding the points to the player
-				if (drawnCard.getValue() == 1)
-				{
-					if (aceCheck() == 1)
-						startPlayer.setCurrentPoints(1);
-					else 
-						startPlayer.setCurrentPoints(11);
-				}
+				if (aceCheck() == 1)
+					startPlayer.setCurrentPoints(1);
 				else 
-					startPlayer.addPoints(drawnCard);
+					startPlayer.setCurrentPoints(11);
+			}
+			else 
+				startPlayer.addPoints(drawnCard);
 
-				cout << "   YOUR POINTS: ";
-				cout << startPlayer.getCurrentPoints();
-				cout << endl << endl;
+			opponent.addPoints(opponentDrawnCard);
 
-				// Adding the points to the opponent
-				opponent.addPoints(opponentDrawnCard);
-				cout << "   OPPONENT POINTS: ";
-				cout << opponent.getCurrentPoints();
-				cout << endl;
+			showPoints(startPlayer.getCurrentPoints(), opponent.getCurrentPoints());
 				
-				// HIT OR STAND
-				char playerChoice;
-				cout << "   ------------------    HIT OR STAND    ------------------   " << endl << endl;		
+			// HIT OR STAND
+			char playerChoice;
+			cout << "   ------------------    HIT OR STAND    ------------------   " << endl << endl;		
 
-				while (startPlayer.getCurrentPoints() < 21 && opponent.getCurrentPoints() < 21)
+			while (startPlayer.getCurrentPoints() < 21 && opponent.getCurrentPoints() < 21)
+			{
+				hitOrStand(playerChoice);
+
+				if (playerChoice == 'A' || playerChoice == 'a')
 				{
-					hitOrStand(playerChoice);
+					// Drawing a card
+					Card secondDrawnCard = defaultDeck.getDrawnCard();
+					defaultDeck.draw();
+					cout << "   YOU DREW  ->  ";
+					secondDrawnCard.printCard(); cout << endl;
 
-					if (playerChoice == 'A' || playerChoice == 'a')
-					{
-						// Drawing a card
-						Card secondDrawnCard = defaultDeck.getDrawnCard();
-						defaultDeck.draw();
-						cout << "   YOU DREW  ->  ";
-						secondDrawnCard.printCard(); cout << endl;
+					// Adding the points to the player
+					startPlayer.addPoints(secondDrawnCard);
 
-						// Adding the points to the player
-						startPlayer.addPoints(secondDrawnCard);
-
-						// Showing the points
-						showPoints(startPlayer.getCurrentPoints(), opponent.getCurrentPoints());
-					}
-					else if (playerChoice == 'B' || playerChoice == 'b')
-					{
-						/* ŒœŒÕ≈Õ“¿ œŒ◊¬¿ ƒ¿ “≈√À» ƒŒ ¿“Œ Õ≈ —“»√Õ≈ 17 */
-
-						cout << "   ------------------    DRAWING CARDS FOR THE OPPONENT...    ------------------   " << endl << endl;
-
-						while (opponent.getCurrentPoints() < 17)
-						{
-							// Drawing a card
-							Card opponentSecondDrawnCard = defaultDeck.getDrawnCard();
-							defaultDeck.draw();
-							cout << "   YOUR OPPONENT DREW  ->  ";
-							opponentSecondDrawnCard.printCard(); cout << endl;
-
-							// Adding the points to the opponent
-							opponent.addPoints(opponentSecondDrawnCard);
-
-							// Showing the points
-							showPoints(startPlayer.getCurrentPoints(), opponent.getCurrentPoints());
-						}
-
-						break;
-					}
-					else
-					{
-						// If the player chooses probabilty
-						int collectedPoints = startPlayer.getCurrentPoints();
-						int leftPointsTo21 = 21 - collectedPoints;
-						size_t perfectCards = defaultDeck.rank_count(leftPointsTo21);
-
-						double probability =  perfectCards / defaultDeck.getSize();
-
-						if (leftPointsTo21 > 11)
-							probability = 0;
-
-						cout << "   PROBABILITY OF COMPLETING YOUR SCORE TO 21: " << endl; cout << "   -> ";
-						cout << probability << endl;
-					}
+					// Showing the points
+					showPoints(startPlayer.getCurrentPoints(), opponent.getCurrentPoints());
 				}
-
-				// Last draw (if the opponent is between 17 and 21 points, choose hit or stand)
-				if (opponent.getCurrentPoints() > 17 && opponent.getCurrentPoints() < 21)
+				else if (playerChoice == 'B' || playerChoice == 'b')
 				{
-					cout << "   YOU CAN EITHER HIT OR STAND... " << endl;
-					cout << "   -> A: HIT " << endl;
-					cout << "   -> B: STAND" << endl;
-					cout << "   YOUR CHOICE: ";
+					cout << "   ------------------    DRAWING CARDS FOR THE OPPONENT...    ------------------   " << endl << endl;
 
-					cin >> playerChoice; cout << endl;
-
-					while (playerChoice != 'B' && playerChoice != 'b' && playerChoice != 'A' && playerChoice != 'a')
-					{
-						cin >> playerChoice;
-						cout << "   INCORRECT INPUT " << endl;
-						cout << "   -> A: HIT " << endl;
-						cout << "   -> B: STAND" << endl;
-						cout << "   YOUR CHOICE: ";
-					}
-
-					if (playerChoice == 'A' || playerChoice == 'a')
+					while (opponent.getCurrentPoints() < 17)
 					{
 						// Drawing a card
-						Card lastDrawnCard = defaultDeck.getDrawnCard();
-						defaultDeck.draw();
-						cout << "   YOU DREW  ->  ";
-						lastDrawnCard.printCard(); cout << endl;
-
-						// Adding the points to the player
-						startPlayer.addPoints(lastDrawnCard);
-
-						// Showing the points
-						showPoints(startPlayer.getCurrentPoints(), opponent.getCurrentPoints());
-					}
-					else 
-					{
-						// Drawing a card
-						Card opponentLastDrawnCard = defaultDeck.getDrawnCard();
+						Card opponentSecondDrawnCard = defaultDeck.getDrawnCard();
 						defaultDeck.draw();
 						cout << "   YOUR OPPONENT DREW  ->  ";
-						opponentLastDrawnCard.printCard(); cout << endl;
+						opponentSecondDrawnCard.printCard(); cout << endl;
 
 						// Adding the points to the opponent
-						opponent.addPoints(opponentLastDrawnCard);
+						opponent.addPoints(opponentSecondDrawnCard);
 
 						// Showing the points
 						showPoints(startPlayer.getCurrentPoints(), opponent.getCurrentPoints());
 					}
-				}
-				
 
-				cout << "   ------------------    THE GAME HAS ENDED...    ------------------   " << endl << endl;
-
-				if (opponent.getCurrentPoints() > 21)
-				{
-					cout << "   THE OPPONENT GOT ABOVE 21 - YOU WIN!" << endl;
-					startPlayer.addWin();
-				}
-				else if (opponent.getCurrentPoints() == 21)
-					cout << "   THE OPPONENT GOT 21 - YOU LOSE!" << endl;
-				else if (startPlayer.getCurrentPoints() > 21)
-					cout << "   YOU GOT ABOVE 21 - YOU LOSE!" << endl;
-				else if (startPlayer.getCurrentPoints() == 21)
-				{
-					cout << "   YOU GOT 21 - YOU WIN!" << endl;
-					startPlayer.addWin();
-				}
-				else if (startPlayer.getCurrentPoints() >= opponent.getCurrentPoints())
-				{
-					cout << "   YOU HAVE MORE POINTS - YOU WIN!" << endl;
-					startPlayer.addWin();
-				}
-				else if (startPlayer.getCurrentPoints() < opponent.getCurrentPoints())
-					cout << "   THE OPPONENT HAS MORE POINTS - YOU LOSE!" << endl;
-
-				cout << endl;
-
-				cout << "   ------------------    PLAYER STATISTICS...    ------------------   " << endl << endl;
-				startPlayer.addGamePlayed();
-				startPlayer.updateWinOdd();
-				Player playerDuplicate = startPlayer;
-				registeredUsers.push_back(playerDuplicate);
-
-				cout << "   Saved player stats into registeredUsers for: "; startPlayer.getName();
-				startPlayer.printStats(); cout << endl;
-
-				cout << "   ------------------    QUITTING THE GAME...    ------------------   " << endl << endl;
-
-				// Reseting the stats
-				startPlayer.setCurrentPoints(0);
-				opponent.setCurrentPoints(0);
-			}
-
-
-
-
-
-
-
-			// CUSTOM DECK
-			else  
-			{
-				// With custom deck
-				Deck customDeck(numOfCards);
-
-				// The player draws a card
-				Card drawnCard = customDeck.getDrawnCard();
-				customDeck.draw();
-				cout << "   YOU DREW  ->  ";
-				drawnCard.printCard(); cout << endl;
-				startPlayer.setDrawnCard(drawnCard);
-
-				// The opponent draws a card
-				Card opponentDrawnCard = customDeck.getDrawnCard();
-				customDeck.draw();
-				cout << "   YOU OPPENENT DREW  ->  ";
-				opponentDrawnCard.printCard(); cout << endl;
-				opponent.setDrawnCard(opponentDrawnCard);
-
-				// Adding the points to the player
-				if (drawnCard.getValue() == 1)
-				{
-					if (aceCheck() == 1)
-						startPlayer.setCurrentPoints(1);
-					else
-						startPlayer.setCurrentPoints(11);
+					break;
 				}
 				else
-					startPlayer.addPoints(drawnCard);
-
-				cout << "   YOUR POINTS: ";
-				cout << startPlayer.getCurrentPoints();
-				cout << endl << endl;
-
-				// Adding the points to the opponent
-				opponent.addPoints(opponentDrawnCard);
-				cout << "   OPPONENT POINTS: ";
-				cout << opponent.getCurrentPoints();
-				cout << endl;
-
-				// HIT OR STAND
-				char playerChoice;
-				cout << "   ------------------    HIT OR STAND    ------------------   " << endl << endl;
-
-				while (startPlayer.getCurrentPoints() < 21 && opponent.getCurrentPoints() < 21)
 				{
-					hitOrStand(playerChoice);
+					// If the player chooses probabilty
+					int collectedPoints = startPlayer.getCurrentPoints();
+					int leftPointsTo21 = 21 - collectedPoints;
+					size_t perfectCards = defaultDeck.rank_count(leftPointsTo21);
 
-					if (playerChoice == 'A' || playerChoice == 'a')
-					{
-						// Drawing a card
-						Card secondDrawnCard = customDeck.getDrawnCard();
-						customDeck.draw();
-						cout << "   YOU DREW  ->  ";
-						secondDrawnCard.printCard(); cout << endl;
+					double probability =  perfectCards / defaultDeck.getSize();
 
-						// Adding the points to the player
-						startPlayer.addPoints(secondDrawnCard);
+					if (leftPointsTo21 > 11)
+						probability = 0;
 
-						// Showing the points
-						showPoints(startPlayer.getCurrentPoints(), opponent.getCurrentPoints());
-					}
-					else if (playerChoice == 'B' || playerChoice == 'b')
-					{
-						/* ŒœŒÕ≈Õ“¿ œŒ◊¬¿ ƒ¿ “≈√À» ƒŒ ¿“Œ Õ≈ —“»√Õ≈ 17 */
-
-						cout << "   ------------------    DRAWING CARDS FOR THE OPPONENT...    ------------------   " << endl << endl;
-
-						while (opponent.getCurrentPoints() < 17)
-						{
-							// Drawing a card
-							Card opponentSecondDrawnCard = customDeck.getDrawnCard();
-							customDeck.draw();
-							cout << "   YOUR OPPONENT DREW  ->  ";
-							opponentSecondDrawnCard.printCard(); cout << endl;
-
-							// Adding the points to the opponent
-							opponent.addPoints(opponentSecondDrawnCard);
-
-							// Showing the points
-							showPoints(startPlayer.getCurrentPoints(), opponent.getCurrentPoints());
-						}
-
-						break;
-					}
-					else
-					{
-						// If the player chooses probabilty
-						int collectedPoints = startPlayer.getCurrentPoints();
-						int leftPointsTo21 = 21 - collectedPoints;
-						size_t perfectCards = customDeck.rank_count(leftPointsTo21);
-
-						double probability = perfectCards / customDeck.getSize();
-
-						if (leftPointsTo21 > 11)
-							probability = 0;
-
-						cout << "   PROBABILITY OF COMPLETING YOUR SCORE TO 21: " << endl; cout << "   -> ";
-						cout << probability << endl << endl;
-					}
+					cout << "   PROBABILITY OF COMPLETING YOUR SCORE TO 21: " << endl; cout << "   -> ";
+					cout << probability << endl;
 				}
+			}
 
-				// Last draw (if the opponent is between 17 and 21 points, choose hit or stand)
-				if (opponent.getCurrentPoints() > 17 && opponent.getCurrentPoints() < 21)
-				{
-					cout << "   YOU CAN EITHER HIT OR STAND... " << endl;
-					cout << "   -> A: HIT " << endl;
-					cout << "   -> B: STAND" << endl;
-					cout << "   YOUR CHOICE: ";
+			cout << "   ------------------    THE GAME HAS ENDED...    ------------------   " << endl << endl;
 
-					cin >> playerChoice; cout << endl;
+			// Depending on the points
+			decideWinner(startPlayer, opponent);
 
-					while (playerChoice != 'B' && playerChoice != 'b' && playerChoice != 'A' && playerChoice != 'a')
-					{
-						cin >> playerChoice;
-						cout << "   INCORRECT INPUT " << endl;
-						cout << "   -> A: HIT " << endl;
-						cout << "   -> B: STAND" << endl;
-						cout << "   YOUR CHOICE: ";
-					}
+			cout << "   ------------------    PLAYER STATISTICS...    ------------------   " << endl << endl;
+			startPlayer.addGamePlayed();
+			startPlayer.updateWinOdd();
+			registeredUsers.push_back(startPlayer);
 
-					if (playerChoice == 'A' || playerChoice == 'a')
-					{
-						// Drawing a card
-						Card lastDrawnCard = customDeck.getDrawnCard();
-						customDeck.draw();
-						cout << "   YOU DREW  ->  ";
-						lastDrawnCard.printCard(); cout << endl;
+			// Reseting the stats
+			startPlayer.setCurrentPoints(0);
+			opponent.setCurrentPoints(0);
 
-						// Adding the points to the player
-						startPlayer.addPoints(lastDrawnCard);
+			// After updating stats, output the player stats into a file 
+			fstream fs;
+			startPlayer.printOutput(fs); cout << endl;
 
-						// Showing the points
-						showPoints(startPlayer.getCurrentPoints(), opponent.getCurrentPoints());
-					}
-					else 
-					{
-						// Drawing a card
-						Card opponentLastDrawnCard = customDeck.getDrawnCard();
-						customDeck.draw();
-						cout << "   YOUR OPPONENT DREW  ->  ";
-						opponentLastDrawnCard.printCard(); cout << endl;
+			cout << "   Saved player stats into registeredUsers for: "; startPlayer.getName();
+			startPlayer.printStats(); cout << endl;
 
-						// Adding the points to the opponent
-						opponent.addPoints(opponentLastDrawnCard);
+			cout << "   ------------------    QUITTING THE GAME...    ------------------   " << endl << endl;
 
-						// Showing the points
-						showPoints(startPlayer.getCurrentPoints(), opponent.getCurrentPoints());
-					}
-				}
-
-
-				cout << "   ------------------    THE GAME HAS ENDED...    ------------------   " << endl << endl;
-
-				if (opponent.getCurrentPoints() > 21)
-				{
-					cout << "   THE OPPONENT GOT ABOVE 21 - YOU WIN!" << endl;
-					startPlayer.addWin();
-				}
-				else if (opponent.getCurrentPoints() == 21)
-					cout << "   THE OPPONENT GOT 21 - YOU LOSE!" << endl;
-				else if (startPlayer.getCurrentPoints() > 21)
-					cout << "   YOU GOT ABOVE 21 - YOU LOSE!" << endl;
-				else if (startPlayer.getCurrentPoints() == 21)
-				{
-					cout << "   YOU GOT 21 - YOU WIN!" << endl;
-					startPlayer.addWin();
-				}
-				else if (startPlayer.getCurrentPoints() >= opponent.getCurrentPoints())
-				{
-					cout << "   YOU HAVE MORE POINTS - YOU WIN!" << endl;
-					startPlayer.addWin();
-				}
-				else if (startPlayer.getCurrentPoints() < opponent.getCurrentPoints())
-					cout << "   THE OPPONENT HAS MORE POINTS - YOU LOSE!" << endl;
-
-				cout << endl;
-
-				cout << "   ------------------    PLAYER STATISTICS...    ------------------   " << endl << endl;
-				startPlayer.addGamePlayed();
-				startPlayer.updateWinOdd();
-				Player playerDuplicate = startPlayer;
-				registeredUsers.push_back(playerDuplicate);
-
-				cout << "   Saved player stats into registeredUsers for: "; startPlayer.getName();
-				startPlayer.printStats(); cout << endl;
-
-				cout << "   ------------------    QUITTING THE GAME...    ------------------   " << endl << endl;
-
-				// Reseting the stats
-				startPlayer.setCurrentPoints(0);
-				opponent.setCurrentPoints(0);
-			}	
 		}
 
-		break;
+
+
+
+
+
+
+		// CUSTOM DECK
+		else  
+		{
+			// With custom deck
+			Deck customDeck(numOfCards);
+
+			// The player draws a card
+			Card drawnCard = customDeck.getDrawnCard();
+			customDeck.draw();
+			cout << "   YOU DREW  ->  ";
+			drawnCard.printCard(); cout << endl;
+			startPlayer.setDrawnCard(drawnCard);
+
+			// The opponent draws a card
+			Card opponentDrawnCard = customDeck.getDrawnCard();
+			customDeck.draw();
+			cout << "   YOU OPPENENT DREW  ->  ";
+			opponentDrawnCard.printCard(); cout << endl;
+			opponent.setDrawnCard(opponentDrawnCard);
+
+			// Adding the points to the player
+			if (drawnCard.getValue() == 1)
+			{
+				if (aceCheck() == 1)
+					startPlayer.setCurrentPoints(1);
+				else
+					startPlayer.setCurrentPoints(11);
+			}
+			else
+				startPlayer.addPoints(drawnCard);
+
+			cout << "   YOUR POINTS: ";
+			cout << startPlayer.getCurrentPoints();
+			cout << endl << endl;
+
+			// Adding the points to the opponent
+			opponent.addPoints(opponentDrawnCard);
+			cout << "   OPPONENT POINTS: ";
+			cout << opponent.getCurrentPoints();
+			cout << endl;
+
+			// HIT OR STAND
+			char playerChoice;
+			cout << "   ------------------    HIT OR STAND    ------------------   " << endl << endl;
+
+			while (startPlayer.getCurrentPoints() < 21 && opponent.getCurrentPoints() < 21)
+			{
+				hitOrStand(playerChoice);
+
+				if (playerChoice == 'A' || playerChoice == 'a')
+				{
+					// Drawing a card
+					Card secondDrawnCard = customDeck.getDrawnCard();
+					customDeck.draw();
+					cout << "   YOU DREW  ->  ";
+					secondDrawnCard.printCard(); cout << endl;
+
+					// Adding the points to the player
+					startPlayer.addPoints(secondDrawnCard);
+
+					// Showing the points
+					showPoints(startPlayer.getCurrentPoints(), opponent.getCurrentPoints());
+				}
+				else if (playerChoice == 'B' || playerChoice == 'b')
+				{
+					/* ŒœŒÕ≈Õ“¿ œŒ◊¬¿ ƒ¿ “≈√À» ƒŒ ¿“Œ Õ≈ —“»√Õ≈ 17 */
+
+					cout << "   ------------------    DRAWING CARDS FOR THE OPPONENT...    ------------------   " << endl << endl;
+
+					while (opponent.getCurrentPoints() < 17)
+					{
+						// Drawing a card
+						Card opponentSecondDrawnCard = customDeck.getDrawnCard();
+						customDeck.draw();
+						cout << "   YOUR OPPONENT DREW  ->  ";
+						opponentSecondDrawnCard.printCard(); cout << endl;
+
+						// Adding the points to the opponent
+						opponent.addPoints(opponentSecondDrawnCard);
+
+						// Showing the points
+						showPoints(startPlayer.getCurrentPoints(), opponent.getCurrentPoints());
+					}
+
+					break;
+				}
+				else
+				{
+					// If the player chooses probabilty
+					int collectedPoints = startPlayer.getCurrentPoints();
+					int leftPointsTo21 = 21 - collectedPoints;
+					size_t perfectCards = customDeck.rank_count(leftPointsTo21);
+
+					double probability = perfectCards / customDeck.getSize();
+
+					if (leftPointsTo21 > 11)
+						probability = 0;
+
+					cout << "   PROBABILITY OF COMPLETING YOUR SCORE TO 21: " << endl; cout << "   -> ";
+					cout << probability << endl << endl;
+				}
+			}
+
+			cout << "   ------------------    THE GAME HAS ENDED...    ------------------   " << endl << endl;
+
+			// Depending on the points
+			decideWinner(startPlayer, opponent);
+
+			cout << "   ------------------    PLAYER STATISTICS...    ------------------   " << endl << endl;
+			startPlayer.addGamePlayed();
+			startPlayer.updateWinOdd();
+			registeredUsers.push_back(startPlayer);
+
+			// Reseting the stats
+			startPlayer.setCurrentPoints(0);
+			opponent.setCurrentPoints(0);
+
+			// After updating stats, output the player stats into a file 
+			fstream fs;
+			startPlayer.printOutput(fs); cout << endl;
+
+			cout << "   Saved player stats into registeredUsers for: "; startPlayer.getName();
+			startPlayer.printStats(); cout << endl;
+
+			cout << "   ------------------    QUITTING THE GAME...    ------------------   " << endl << endl;
+
+			// Reseting the stats
+			startPlayer.setCurrentPoints(0);
+			opponent.setCurrentPoints(0);
+		}	
+	}
+	else
+	{
+		cout << endl;
+		cout << "   Error registering player!" << endl;
 	}
 }
 

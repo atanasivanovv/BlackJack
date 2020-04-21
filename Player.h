@@ -1,5 +1,6 @@
 #pragma once
 #include "Deck.h"
+#include <fstream>
 
 using namespace std;
 
@@ -53,6 +54,7 @@ public:
 
 	void print();
 	void printStats();
+	void printOutput(fstream& outputStream);
 	void getName();
 	void reg();
 };
